@@ -1,6 +1,8 @@
 #include "Adafruit_BME680.h"
+#include "Ubidots.h"
 
 // Globals
+extern Ubidots ubidots; //defined in main src file
 Adafruit_BME680 bme; // I2C
 double temperatureInC = 0;
 double relativeHumidity = 0;
@@ -21,13 +23,17 @@ void bmeLoop()
         pressureHpa = bme.pressure / 100.0;
         gasResistanceKOhms = bme.gas_resistance / 1000.0; // Need a better understanding of what the resistance corelates to in terms of air composition; come back to later if time allows
 
-        Log.info("BME688 readings:\nTemp Celsius: %f\nHumidity %%: %f\nPressure hPa: %f\nGas res. KOhms: %f",
+        Log.info("BME688 readings:\n\tTemp Celsius: %f\n\tHumidity %%: %f\n\tPressure hPa: %f\n\tGas res. KOhms: %f",
                  temperatureInC,
                  relativeHumidity,
                  pressureHpa,
                  gasResistanceKOhms);
 
-        // TODO: send info up with ubidots
+        // Send up to Ubidots platform for tracking.
+        ubidots.add("bme688_temperature_celsius"      , temperatureInC);
+        ubidots.add("bme688_humidity_percentage"      , relativeHumidity);
+        ubidots.add("bme688_air_pressure_hectopascals", pressureHpa);
+        ubidots.send();
     }
 
     delay(5000); //TEMP
