@@ -31,7 +31,6 @@ void setup()
     // For lack of time, probably use Ubidots to display data because it's really easy and powerful; includes ability to track device locations on a map already.
     Serial.begin(115200); //gps serial rate
 
-    micSetup(); // Not complete
     //solarSetup(); //need to look at documentation for solar charger chip
     //bmeSetup(); // Complete
 

@@ -4,6 +4,5 @@
 #include "stdio.h"
 
     void micLoop();
-    void micSetup();
 
 #endif
