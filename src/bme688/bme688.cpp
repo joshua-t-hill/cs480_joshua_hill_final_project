@@ -35,8 +35,6 @@ void bmeLoop()
         ubidots.add("bme688_air_pressure_hectopascals", pressureHpa);
         ubidots.send();
     }
-
-    delay(5000); //TEMP
 }
 
 /// @brief Setup the BME688 with the desired sampling settings.
@@ -44,7 +42,7 @@ void bmeSetup()
 {
     if(!bme.begin()) // Default i2c address (when not specified) is 0x77
     {
-        Log.info("BME688 could not be initialiazed, check sensor.");
+        Log.info("BME688 could not be initialiased, check sensor.");
     }
     else
     {
