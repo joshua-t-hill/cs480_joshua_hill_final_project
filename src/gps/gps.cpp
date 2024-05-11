@@ -4,15 +4,20 @@
 #include "oled/oled.h"
 
 // Globals
+const float gpsUbidotsValue = 1; 
+const int BUTTON_PIN = A2;
+const unsigned long int DEBOUNCE_DELTA = 1000;
+const String oledInstruction = "Press button when red\nFIX light on GPS\nmodule blinks once\nevery 15 seconds.\n\nWill blink faster if not ready.";
+const String oledGpsSuccess = "GPS upload \nsuccessful!\n\n Latitude: %.5f\nLongitude: %.5f";
+const String oledGpsFailure = "GPS upload failed!\n\n Latitude: %.5f\nLongitude: %.5f";
+
 #define GPSSerial Serial1
 Adafruit_GPS GPS(&GPSSerial);
 extern Ubidots ubidots;
-
-const int BUTTON_PIN = A2;
-const unsigned long int DEBOUNCE_DELTA = 1000;
 unsigned long int timeLastPressed = 0;
 
-/// @brief 
+
+/// @brief Loops infinitely on GPS.read() which gathers complete GPS data over time. Button press grabs GPS location if available.
 void gpsLoop()
 {
     GPS.read();
@@ -21,30 +26,37 @@ void gpsLoop()
     {
         timeLastPressed = millis();
 
-        // if a sentence is received, we can check the checksum, parse it...
-        if (GPS.newNMEAreceived()) 
+        if (GPS.newNMEAreceived()) // if a sentence is received, we can check the checksum, parse it...
         {
             if (!GPS.parse(GPS.lastNMEA())) // this also sets the newNMEAreceived() flag to false
             {
                 Log.info("GPS Parse Failed");
                 return; // we can fail to parse a sentence in which case we should just wait for another
-            }       
+            } 
+            bool bufferSent = false;
+            char str_lat[30]; // Reserves memory to store context key values, add as much as you need
+            char str_lng[30];
+            char context[50]; // Reserves memory to store context array
 
             float latitude = GPS.latitude;
             float longitude = GPS.longitude;
 
-            String gpsOledText = String::format(" Latitude: %.5f\nLongitude: %.5f", latitude, longitude);
-            String gpsUbidotsContext = String::format("{\"lat\": %f, \"lng\": %f}", latitude, longitude);
+            sprintf(str_lat, "%f", latitude); // Saves the coordinates as char
+            sprintf(str_lng, "%f", longitude);
+            ubidots.addContext("lat", str_lat); // Adds context key-value pairs
+            ubidots.addContext("lng", str_lng);
+            ubidots.getContext(context); // Builds the context with the coordinates to send to Ubidots
 
-            printToOled(gpsOledText);
-            Log.info("GPS readings:\n\t%s", gpsOledText);
+            ubidots.add("position", gpsUbidotsValue, context); // Sends the position
+            bufferSent = ubidots.send();
 
-            //ubidots.add("position", 1.0, gpsUbidotsContext); //lookup .add() with context
+            printToOled(String::format(bufferSent?oledGpsSuccess:oledGpsFailure, latitude, longitude)); // If buffersent==true, return success oled print; otherwise failure oled print
+            Log.info("GPS readings\n\tSent to Ubidots:%d\n\tlat:%f\n\tlong:%f", bufferSent, latitude, longitude);
         }
     }
 }
 
-/// @brief 
+/// @brief Specify the GPS's settings in preparation to looping on GPS.read().
 void gpsSetup()
 {
     GPS.begin(9600);
@@ -53,5 +65,6 @@ void gpsSetup()
 
     pinMode(BUTTON_PIN, INPUT_PULLUP);
 
+    printToOled(oledInstruction);
     Log.info("GPS setup() complete.");
 }

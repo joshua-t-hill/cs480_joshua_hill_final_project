@@ -31,24 +31,22 @@ SerialLogHandler logHandler(LOG_LEVEL_INFO);
 #endif
 Ubidots ubidots(TOKEN, UBI_HTTP);
 
-// setup()
+/// @brief Setup driver.
 void setup() 
 {
-    // For lack of time, probably use Ubidots to display data because it's really easy and powerful; includes ability to track device locations on a map already.
     Serial.begin(115200); //gps serial rate
-    //Serial.begin(9600); //test
 
     //solarSetup(); //need to look at documentation for solar charger chip
-    bmeSetup(); // Complete
+    //bmeSetup(); // Complete
 
-    //oledSetup(); //OLED works
-    //gpsSetup(); //GPS works; decided to use button to control GPS polling as errors tend to happen otherwise
+    oledSetup(); //OLED works
+    gpsSetup(); //GPS works; activates location ping on button press
 }
 
-// loop()
+/// @brief Loop driver.
 void loop() 
 {
     //micLoop(); // Not complete
-    //gpsLoop(); //Complete
-    bmeLoop(); //Complete
+    gpsLoop(); //Complete
+    //bmeLoop(); //Complete
 }
