@@ -1,0 +1,3 @@
+/// @brief  Didn't have time to write meaningful code for the Solar Charger chip, but it's purpose is served as a conduit for "LiPo-to-Photon2" charge as well as "Solar power-to-LiPo/Photon2" charge.
+///         There isn't a good way to calculate Solar Panel input without getting between the DC-in port and the Solar Panel cable with a multimeter, so that idea went nowhere (in terms of trying to track the charge to display to the user).
+///         Left the files in case I decide to come back and modify it later as a personal project.
