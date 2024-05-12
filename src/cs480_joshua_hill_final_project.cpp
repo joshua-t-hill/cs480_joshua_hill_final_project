@@ -1,7 +1,7 @@
 /* 
  * Project CS480 Final Project: "Internet of Bees (IoBs)"
  * Author: Joshua T. Hill
- * Date: 5/7/2024
+ * Date: 5/7/2024 (the date I remembered to add this comment block; started project firmware well before then)
  * For comprehensive documentation and examples, please visit:
  * https://docs.particle.io/firmware/best-practices/firmware-template/
  */
