@@ -2,7 +2,11 @@
 #include "Ubidots.h"
 
 // Globals
-extern Ubidots ubidots; //defined in main src file
+const String LOG_INITIALIZATION_FAILED = "BME688 could not be initialiased, check sensor.";
+const String LOG_READING_FAILED = "BME0688 reading failed";
+const String LOG_READINGS = "BME688 readings:\n\tTemp Celsius: %f\n\tHumidity %%: %f\n\tPressure hPa: %f\n\tGas res. KOhms: %f";
+
+extern Ubidots ubidots; // Defined in main src file
 Adafruit_BME680 bme; // I2C
 double temperatureInC = 0;
 double relativeHumidity = 0;
@@ -14,26 +18,24 @@ void bmeLoop()
 {
     if (! bme.performReading()) 
     {
-        Log.info("BME0688 reading failed");
+        Log.info(LOG_READING_FAILED);
     }
     else
     {
         temperatureInC = bme.temperature;
         relativeHumidity = bme.humidity;
         pressureHpa = bme.pressure / 100.0;
-        gasResistanceKOhms = bme.gas_resistance / 1000.0; // Need a better understanding of what the resistance corelates to in terms of air composition; come back to later if time allows
+        gasResistanceKOhms = bme.gas_resistance / 1000.0; // Need a better understanding of what the resistance correlates to in terms of air composition; come back to later if time allows.
 
-        Log.info("BME688 readings:\n\tTemp Celsius: %f\n\tHumidity %%: %f\n\tPressure hPa: %f\n\tGas res. KOhms: %f",
+        Log.info(LOG_READINGS,
                  temperatureInC,
                  relativeHumidity,
                  pressureHpa,
                  gasResistanceKOhms);
 
-        // Send up to Ubidots platform for tracking.
         ubidots.add("bme688_temperature_celsius"      , temperatureInC);
         ubidots.add("bme688_humidity_percentage"      , relativeHumidity);
         ubidots.add("bme688_air_pressure_hectopascals", pressureHpa);
-        ubidots.send();
     }
 }
 
@@ -42,7 +44,7 @@ void bmeSetup()
 {
     if(!bme.begin()) // Default i2c address (when not specified) is 0x77
     {
-        Log.info("BME688 could not be initialiased, check sensor.");
+        Log.info(LOG_INITIALIZATION_FAILED);
     }
     else
     {

@@ -3,6 +3,7 @@
 
 #include "stdio.h"
 
+    void updateOledForGps(bool bufferSent);
     void gpsLoop();
     void gpsSetup();
 

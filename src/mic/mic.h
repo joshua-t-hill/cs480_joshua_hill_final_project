@@ -3,6 +3,7 @@
 
 #include "stdio.h"
 
+    void micDataToUbidots();
     void micLoop();
 
 #endif

@@ -9,7 +9,6 @@
 // Include Particle Device OS APIs
 #include "Particle.h"
 #include "Ubidots.h"
-
 #include "mic/mic.h"
 #include "oled/oled.h"
 #include "gps/gps.h"
@@ -29,24 +28,44 @@ SerialLogHandler logHandler(LOG_LEVEL_INFO);
 #ifndef TOKEN
     #define TOKEN "BBUS-YEhdrs7LSWjGACAyH7tAnjBJ6ihrG0"
 #endif
-Ubidots ubidots(TOKEN, UBI_HTTP);
+const String LOG_TIME_PASSED = "millis() - startMillis = %ld";
+const int TIMER = 1000; // Control frequency of sending data to Ubidots
 
-/// @brief Setup driver.
+extern bool gpsIncluded;
+Ubidots ubidots(TOKEN, UBI_HTTP);
+unsigned long startMillis;
+
+/// @brief Driver Setup.
 void setup() 
 {
-    Serial.begin(115200); //gps serial rate
+    Serial.begin(115200); // GPS serial rate
 
-    //solarSetup(); //need to look at documentation for solar charger chip
-    //bmeSetup(); // Complete
+    oledSetup(); // Always first; gpsSetup() uses the OLED
+    gpsSetup();
+    bmeSetup();
 
-    oledSetup(); //OLED works
-    gpsSetup(); //GPS works; activates location ping on button press
+    startMillis = millis(); // Begin TIMER
 }
 
-/// @brief Loop driver.
+/// @brief Driver Loop.
 void loop() 
 {
-    //micLoop(); // Not complete
-    gpsLoop(); //Complete
-    //bmeLoop(); //Complete
+    gpsLoop(); // Run outside of TIMER check because GPS.read() needs to run on every loop. Button press will attempt to send GPS data to Ubidots if available.
+    micLoop(); // Constantly collects sound data and only calculates peak-to-peak when micDataToUbidots() is called.
+
+    unsigned long timePassed = millis() - startMillis;
+    if(millis() - startMillis > TIMER) // Only send data every ~1s
+    {
+        bool bufferSent = false;
+        Log.info(LOG_TIME_PASSED, timePassed);
+        ubidots.add("read_duration", timePassed);
+
+        bmeLoop();
+        micDataToUbidots(); 
+
+        bufferSent = ubidots.send(); // Send all collected data up to Ubidots.
+        if(gpsIncluded){ updateOledForGps(bufferSent); } // Only update OLED if the GPS data was included.
+
+        startMillis = millis(); // Reset TIMER
+    }
 }
